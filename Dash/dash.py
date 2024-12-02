@@ -58,10 +58,10 @@ def graficos():
         # Calcular a média
         media_temp = dados_temp.groupby('nome')['indice'].mean().reset_index()
 
-        # Criar gráfico
-        fig_temp = px.bar(media_temp, x='nome', y='indice', title='Temperatura Média por País')
+        # Criar gráfico com tons de vermelho
+        fig_temp = px.bar(media_temp.sort_values(by='indice', ascending=False), x='nome', y='indice', title='Temperatura Média por País')
         st.plotly_chart(fig_temp)
-    
+
     with aba2:
         # Juntar dados
         dados_mortes = mortes.merge(pais, left_on='id_pais', right_on='id')
@@ -75,8 +75,15 @@ def graficos():
                 xanchor="left",
                 x=1.05,  # Move a legenda para fora do gráfico
                 orientation="h",  # Orientação vertical
-            )
+                itemwidth=30,
+                traceorder='normal',
+                itemsizing='constant'
+            ),
+            legend_title="Países",
+            showlegend=True
         )
+        # Alterar as bolinhas de legenda
+        fig_mortes.update_traces(marker=dict(symbol='circle'))
         st.plotly_chart(fig_mortes)
 
     with aba3:
@@ -88,24 +95,24 @@ def graficos():
         st.plotly_chart(fig_emissoes)
 
     with aba4:
-        # Exibir gráfico
-        fig_filtro = px.bar(dados_filtrados, x='ano', y='indice', title=f'Temperatura em {pais_selecionado} de {ano_inicio} a {ano_fim}')
+        # Exibir gráfico com tons de vermelho
+        fig_filtro = px.bar(dados_filtrados, x='ano', y='indice', title=f'Temperatura em {pais_selecionado} de {ano_inicio} a {ano_fim}', color='ano', color_continuous_scale='reds')
         st.plotly_chart(fig_filtro)
-    
+
     with aba5:
         # Junção de dados de temperatura com mortes
         dados_mortes_temperatura = mortes.merge(pais, left_on='id_pais', right_on='id')
         dados_mortes_temperatura = dados_mortes_temperatura[
             (dados_mortes_temperatura['nome'] == pais_selecionado) & 
-            (dados_mortes_temperatura['ano'] >= ano_inicio) &
+            (dados_mortes_temperatura['ano'] >= ano_inicio) & 
             (dados_mortes_temperatura['ano'] <= ano_fim)
         ]
         dados_mortes_temperatura = dados_mortes_temperatura.merge(temperatura, left_on=['id_pais', 'ano'], right_on=['id_pais', 'ano'], suffixes=('_mortes', '_temperatura'))
         fig_temperatura = px.scatter(dados_mortes_temperatura, x='indice', y='quantidade', color='ano',
-                             title=f'Mortes por Temperatura no {pais_selecionado} de {ano_inicio} a {ano_fim}',
-                             labels={'indice': 'Temperatura (°C)', 'quantidade': 'Quantidade de Mortes'})
+                                     title=f'Mortes por Temperatura no {pais_selecionado} de {ano_inicio} a {ano_fim}',
+                                     labels={'indice': 'Temperatura (°C)', 'quantidade': 'Quantidade de Mortes'}, color_continuous_scale='reds')
         st.plotly_chart(fig_temperatura)
-    
+
     with aba6:
         # Junção de dados de emissões com mortes
         dados_mortes_emissoes = mortes.merge(pais, left_on='id_pais', right_on='id')
@@ -116,11 +123,12 @@ def graficos():
         ]
         dados_mortes_emissoes = dados_mortes_emissoes.merge(emissoes, left_on=['id_pais', 'ano'], right_on=['id_pais', 'ano'], suffixes=('_mortes', '_emissoes'))
 
-        # Criar gráfico de mortes por emissões
+        # Criar gráfico de mortes por emissões com tons de vermelho
         fig_emissoes = px.scatter(dados_mortes_emissoes, x='carvao', y='quantidade', color='ano',
-                                title=f'Mortes por Emissões de Carvão no {pais_selecionado} de {ano_inicio} a {ano_fim}',
-                                labels={'carvao': 'Emissões de Carvão (milhões de toneladas)', 'quantidade': 'Quantidade de Mortes'})
+                                  title=f'Mortes por Emissões de Carvão no {pais_selecionado} de {ano_inicio} a {ano_fim}',
+                                  labels={'carvao': 'Emissões de Carvão (milhões de toneladas)', 'quantidade': 'Quantidade de Mortes'}, color_continuous_scale='reds')
         st.plotly_chart(fig_emissoes)
+
     
 
 # Rodar as funções
